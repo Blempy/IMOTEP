@@ -8,6 +8,7 @@ dependencies = [
   "rich",
   "requests",
   "beautifulsoup4",
+  "playwright",
 ]
 
 [project.scripts]
