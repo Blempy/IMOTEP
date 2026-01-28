@@ -65,15 +65,17 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(prog="immo")
     parser.add_argument("--file", help="Chemin YAML/JSON d'une opération")
-    parser.add_argument("--url", help="URL annonce (V1: extraction à implémenter)")
+    parser.add_argument("--url", help="URL annonce immobilière")
     parser.add_argument("--strategy", default="config/strategy.yaml")
     args = parser.parse_args()
 
     strategy = load_strategy(args.strategy)
 
+    # --- CHOIX DU MODE D'ENTRÉE ---
     if args.file:
         op = load_operation_file(args.file)
-        elif args.url:
+
+    elif args.url:
         from immo_engine.extract.registry import get_extractor
         from immo_engine.extract.fetch import fetch_html
         from immo_engine.extract.generic import extract_generic
@@ -82,11 +84,9 @@ def main():
         if ex:
             listing = ex.extract(args.url)
         else:
-            # fallback générique : tente requests puis playwright
             fr = fetch_html(args.url)
             listing = extract_generic(fr.final_url, fr.html)
 
-        # Pré-remplissage depuis l’annonce
         console.print("[bold]Extraction URL[/bold]")
         console.print(f"URL: {listing.url}")
         console.print(f"Titre: {listing.title or '—'}")
@@ -94,8 +94,7 @@ def main():
         console.print(f"Surface: {listing.surface_m2 or '—'}")
         console.print(f"Ville: {listing.city or '—'} {listing.postal_code or ''}")
 
-        # Complétion interactive (car travaux/portage ne seront jamais fiables automatiquement)
-        title = (listing.title or "Opération Leboncoin").strip()
+        title = (listing.title or "Opération URL").strip()
         purchase = float(listing.price_eur or input("Prix achat (€): ").strip())
         works = float(input("Travaux (€) [0]: ").strip() or "0")
         notary = float(input("Frais notaire (€) [0]: ").strip() or "0")
@@ -118,9 +117,11 @@ def main():
             city=listing.city,
             postal_code=listing.postal_code,
         )
+
     else:
         op = interactive_input()
 
+    # --- ANALYSE ---
     res = analyze(op, strategy)
     md = render_md(op, res)
     report_path = save_report(op, md)
@@ -131,9 +132,12 @@ def main():
     t.add_column("Marge (%)", justify="right")
     t.add_column("Risque", justify="right")
 
-    t.add_row(res.verdict, f"{res.net_profit_eur:,.0f}", f"{res.margin_pct:.1f}", f"{res.risk_score:.2f}")
+    t.add_row(
+        res.verdict,
+        f"{res.net_profit_eur:,.0f}",
+        f"{res.margin_pct:.1f}",
+        f"{res.risk_score:.2f}",
+    )
+
     console.print(t)
     console.print(f"[green]Report généré:[/green] {report_path}")
-
-if __name__ == "__main__":
-    main()
