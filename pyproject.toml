@@ -1,0 +1,14 @@
+[project]
+name = "immo-decision-engine"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "pyyaml",
+  "pydantic>=2.0",
+  "rich",
+  "requests",
+  "beautifulsoup4",
+]
+
+[project.scripts]
+immo = "immo_engine.cli:main"
