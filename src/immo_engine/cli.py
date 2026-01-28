@@ -73,9 +73,51 @@ def main():
 
     if args.file:
         op = load_operation_file(args.file)
-    elif args.url:
-        # V1: on branche l'extraction juste après (extract/registry.py)
-        raise SystemExit("Mode URL: à brancher sur immo_engine.extract (prochaine étape).")
+        elif args.url:
+        from immo_engine.extract.registry import get_extractor
+        from immo_engine.extract.fetch import fetch_html
+        from immo_engine.extract.generic import extract_generic
+
+        ex = get_extractor(args.url)
+        if ex:
+            listing = ex.extract(args.url)
+        else:
+            # fallback générique : tente requests puis playwright
+            fr = fetch_html(args.url)
+            listing = extract_generic(fr.final_url, fr.html)
+
+        # Pré-remplissage depuis l’annonce
+        console.print("[bold]Extraction URL[/bold]")
+        console.print(f"URL: {listing.url}")
+        console.print(f"Titre: {listing.title or '—'}")
+        console.print(f"Prix: {listing.price_eur or '—'}")
+        console.print(f"Surface: {listing.surface_m2 or '—'}")
+        console.print(f"Ville: {listing.city or '—'} {listing.postal_code or ''}")
+
+        # Complétion interactive (car travaux/portage ne seront jamais fiables automatiquement)
+        title = (listing.title or "Opération Leboncoin").strip()
+        purchase = float(listing.price_eur or input("Prix achat (€): ").strip())
+        works = float(input("Travaux (€) [0]: ").strip() or "0")
+        notary = float(input("Frais notaire (€) [0]: ").strip() or "0")
+        agency = float(input("Frais agence (€) [0]: ").strip() or "0")
+        holding = float(input("Portage (charges/intérêts) (€) [0]: ").strip() or "0")
+        resale = float(input("Prix revente (€): ").strip())
+        duration = int(input("Durée (mois) [9]: ").strip() or "9")
+
+        op = Operation(
+            title=title,
+            source_url=listing.url,
+            purchase_price_eur=purchase,
+            works_budget_eur=works,
+            notary_fees_eur=notary,
+            agency_fees_eur=agency,
+            holding_costs_eur=holding,
+            resale_price_eur=resale,
+            duration_months=duration,
+            surface_m2=listing.surface_m2,
+            city=listing.city,
+            postal_code=listing.postal_code,
+        )
     else:
         op = interactive_input()
 
