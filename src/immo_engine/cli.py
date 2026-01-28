@@ -68,14 +68,14 @@ def interactive_input() -> Operation:
     )
 
 
-def operation_from_url(url: str) -> Operation:
+def operation_from_url(url: str, debug: bool = False) -> Operation:
     from immo_engine.extract.registry import get_extractor
     from immo_engine.extract.fetch import fetch_html
     from immo_engine.extract.generic import extract_generic
 
     ex = get_extractor(url)
-    if ex:
-        listing = ex.extract(url)
+    if ex and hasattr(ex, "extract"):
+        listing = ex.extract(url, debug=debug)  # <-- debug
     else:
         fr = fetch_html(url)
         listing = extract_generic(fr.final_url, fr.html)
@@ -121,12 +121,14 @@ def main():
     parser.add_argument("--strategy", default="config/strategy.yaml")
     args = parser.parse_args()
 
+    parser.add_argument("--debug-url", action="store_true", help="Debug extraction URL (sauve HTML + XHR)")
+
     strategy = load_strategy(args.strategy)
 
     if args.file:
         op = load_operation_file(args.file)
     elif args.url:
-        op = operation_from_url(args.url)
+        op = operation_from_url(args.url, debug=args.debug_url)
     else:
         op = interactive_input()
 
