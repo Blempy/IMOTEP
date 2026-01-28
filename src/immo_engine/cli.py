@@ -44,4 +44,5 @@ def interactive_input() -> Operation:
     works = float(input("Travaux (€) [0]: ").strip() or "0")
     notary = float(input("Frais notaire (€) [0]: ").strip() or "0")
     agency = float(input("Frais agence (€) [0]: ").strip() or "0")
-    holding = float(input("Portage (charges/in
+    holding = float(input("Portage (charges/intérêts) (€) [0]: ").strip() or "0")
+
