@@ -1,0 +1,16 @@
+objectives:
+  min_net_profit_eur: 10000
+  min_margin_pct: 10
+
+operation:
+  max_duration_months: 12
+  target_price_min_eur: 100000
+  target_price_max_eur: 150000
+
+financing:
+  target_apport_eur: 20000
+  leverage_required: true
+
+risk:
+  # simple au début, on complexifiera ensuite
+  max_risk_score: 0.65
